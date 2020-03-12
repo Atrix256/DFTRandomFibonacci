@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="dft.h" />
+    <ClInclude Include="simple_fft\check_fft.hpp">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_fft\copy_array.hpp">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_fft\error_handling.hpp">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_fft\fft.h">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_fft\fft.hpp">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_fft\fft_impl.hpp">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_fft\fft_settings.h">
+      <Filter>simple_fft</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageData.h" />
+    <ClInclude Include="stb_image_write.h" />
+    <ClInclude Include="math.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="simple_fft">
+      <UniqueIdentifier>{bc839271-a2a5-4bba-a55b-63bbb3388bb6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ImageData.cpp" />
+  </ItemGroup>
+</Project>
