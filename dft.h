@@ -30,33 +30,17 @@ struct ComplexImage1D
     }
 };
 
-float GetMaxMagnitudeDFT(const std::vector<float>& imageSrc)
+double GetMaxMagnitudeDFT(const std::vector<double>& imageSrc)
 {
-    float maxMag = 0.0f;
-    for (float f : imageSrc)
+    double maxMag = 0.0f;
+    for (double f : imageSrc)
         maxMag = std::max(f, maxMag);
     return maxMag;
 }
 
-void NormalizeDFT(const std::vector<float>& imageSrc, std::vector<float>& imageDest)
+void DFT1D(const std::vector<double>& imageSrc, std::vector<double>& magnitudes)
 {
-    float maxMag = GetMaxMagnitudeDFT(imageSrc);
-
-    // normalize the magnitudes
-    //const float c = 1.0f / log(1.0f + maxMag);
-    {
-        imageDest.resize(imageSrc.size());
-        for (size_t index = 0; index < imageSrc.size(); ++index)
-        {
-            //float normalized = c * log(1.0f + *src);
-            imageDest[index] = imageSrc[index] / maxMag;
-        }
-    }
-}
-
-void DFT1D(const std::vector<float>& imageSrc, std::vector<float>& magnitudes)
-{
-    // convert the source image to float and store it as complex so it can be DFTd
+    // convert the source image to double and store it as complex so it can be DFTd
     size_t width = imageSrc.size();
     ComplexImage1D complexImageIn(width);
     for (size_t index = 0, count = width; index < count; ++index)
@@ -73,13 +57,13 @@ void DFT1D(const std::vector<float>& imageSrc, std::vector<float>& magnitudes)
     // get the magnitudes
     {
         magnitudes.resize(width, 0.0f);
-        float* dest = magnitudes.data();
+        double* dest = magnitudes.data();
         for (size_t x = 0; x < width; ++x)
         {
             size_t srcX = (x + width / 2) % width;
 
             const complex_type& c = complexImageOut(srcX);
-            float mag = float(sqrt(c.real()*c.real() + c.imag()*c.imag()));
+            double mag = double(sqrt(c.real()*c.real() + c.imag()*c.imag()));
             *dest = mag;
             ++dest;
         }

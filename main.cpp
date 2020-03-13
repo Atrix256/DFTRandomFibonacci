@@ -9,12 +9,11 @@ typedef uint32_t uint32;
 
 #define DETERMINISTIC() 1
 
-static const size_t c_DFTBucketCount = 256;
-static const size_t c_numValues = 100;
-static const size_t c_numTests = 10000;
+static const size_t c_DFTBucketCount = 1024;
+static const size_t c_numTests = 1000;
 
-static const size_t c_DFTImageWidth = 256;
-static const size_t c_DFTImageHeight = 64;
+static const size_t c_DFTImageWidth = 1024;
+static const size_t c_DFTImageHeight = 256;
 
 
 std::mt19937 GetRNG(uint32 index)
@@ -29,10 +28,10 @@ std::mt19937 GetRNG(uint32 index)
     return rng;
 }
 
-void SaveDFT1D(const std::vector<float>& dftData, size_t imageWidth, size_t imageHeight, const char* fileName)
+void SaveDFT1D(const std::vector<double>& dftData, size_t imageWidth, size_t imageHeight, const char* fileName)
 {
     // get the maximum magnitude so we can normalize the DFT values
-    float maxMagnitude = GetMaxMagnitudeDFT(dftData);
+    double maxMagnitude = GetMaxMagnitudeDFT(dftData);
     //if (stdDevDFTs)
         //maxMagnitude += GetMaxMagnitudeDFT(stdDevDFTs->imageDFT);
 
@@ -47,12 +46,12 @@ void SaveDFT1D(const std::vector<float>& dftData, size_t imageWidth, size_t imag
     size_t numCols = imageWidth / lineSpacing;
     for (size_t i = 0; i < numRows - 1; ++i)
     {
-        int y = int(float(i + 1) * float(lineSpacing));
+        int y = int(double(i + 1) * double(lineSpacing));
         image.Box(0, imageWidth - 1, y, y + 1, RGBA{ 192, 192, 192, 255 });
     }
     for (size_t i = 0; i < numCols - 1; ++i)
     {
-        int x = int(float(i + 1) * float(lineSpacing));
+        int x = int(double(i + 1) * double(lineSpacing));
         image.Box(x, x + 1, 0, imageHeight - 1, RGBA{ 192, 192, 192, 255 });
     }
 
@@ -62,14 +61,14 @@ void SaveDFT1D(const std::vector<float>& dftData, size_t imageWidth, size_t imag
     for (size_t index = 0; index < dftData.size(); ++index)
     {
         size_t pixelX = index * imageWidth / dftData.size();
-        float f = dftData[index] / maxMagnitude;
-        float pixelY = float(imageHeight) - f * float(imageHeight);
+        double f = dftData[index] / maxMagnitude;
+        double pixelY = double(imageHeight) - f * double(imageHeight);
 
         /*
         if (stdDevDFTs)
         {
-            float stdDev = stdDevDFTs->imageDFT[index] / maxMagnitude;
-            int stdDevY = int(stdDev * float(imageHeight));
+            double stdDev = stdDevDFTs->imageDFT[index] / maxMagnitude;
+            int stdDevY = int(stdDev * double(imageHeight));
 
             if (index > 0)
             {
@@ -91,13 +90,13 @@ void SaveDFT1D(const std::vector<float>& dftData, size_t imageWidth, size_t imag
     image.Save(fileName);
 }
 
-void CalculateDFT1D(const std::vector<float>& values, size_t bucketCount, std::vector<float>& valuesDFTMag)
+void CalculateDFT1D(const std::vector<double>& values, size_t bucketCount, std::vector<double>& valuesDFTMag)
 {
     // make an image of the samples
-    std::vector<float> sampleImage(bucketCount, 0.0f);
-    for (const float value : values)
+    std::vector<double> sampleImage(bucketCount, 0.0f);
+    for (const double value : values)
     {
-        size_t x = (size_t)Clamp(value * float(bucketCount), 0.0f, float(bucketCount - 1));
+        size_t x = (size_t)Clamp(value * double(bucketCount), 0.0, double(bucketCount - 1));
         sampleImage[x] = 1.0f;
     }
 
@@ -106,14 +105,14 @@ void CalculateDFT1D(const std::vector<float>& values, size_t bucketCount, std::v
 }
 
 template <typename LAMBDA>
-void DoTest(const char* name, const LAMBDA& lambda)
+void DoTest(const char* name, size_t numTests, size_t numValues, const LAMBDA& lambda)
 {
-    std::vector<float> averageDFT;
-
-    for (size_t testIndex = 0; testIndex < c_numTests; ++testIndex)
+    printf("%s...\n", name);
+    std::vector<double> averageDFT;
+    for (size_t testIndex = 0; testIndex < numTests; ++testIndex)
     {
         std::vector<int32> values;
-        lambda(values, c_numValues, testIndex);
+        lambda(values, numValues, testIndex);
 
         int32 min = values[0];
         int32 max = values[0];
@@ -123,28 +122,37 @@ void DoTest(const char* name, const LAMBDA& lambda)
             max = std::max(max, value);
         }
 
-        std::vector<float> valuesFloat(values.size());
+        std::vector<double> valuesdouble(values.size());
         for (size_t index = 0; index < values.size(); ++index)
-            valuesFloat[index] = float(double(values[index] - min) / double(max - min));
+            valuesdouble[index] = double(double(values[index] - min) / double(max - min));
 
-        std::vector<float> valuesDFT;
-        CalculateDFT1D(valuesFloat, c_DFTBucketCount, valuesDFT);
+        std::vector<double> valuesDFT;
+        CalculateDFT1D(valuesdouble, c_DFTBucketCount, valuesDFT);
 
         if (averageDFT.size() == 0)
             averageDFT.resize(valuesDFT.size(), 0.0f);
 
         for (size_t index = 0; index < valuesDFT.size(); ++index)
-            averageDFT[index] = Lerp(averageDFT[index], valuesDFT[index], 1.0f / float(testIndex + 1));
+            averageDFT[index] = Lerp(averageDFT[index], valuesDFT[index], 1.0 / double(testIndex + 1));
+
+        double damin = averageDFT[0];
+        double damax = averageDFT[0];
+        for (double value : averageDFT)
+        {
+            damin = std::min(damin, value);
+            damax = std::max(damax, value);
+        }
+
 
         char filename[1024];
         if (testIndex == 0)
         {
-            sprintf_s(filename, "%s.png", name);
+            sprintf_s(filename, "out/%s.png", name);
             SaveDFT1D(averageDFT, c_DFTImageWidth, c_DFTImageHeight, filename);
         }
         else if (testIndex == c_numTests - 1)
         {
-            sprintf_s(filename, "%s.avg.png", name);
+            sprintf_s(filename, "out/%s.avg.png", name);
             SaveDFT1D(averageDFT, c_DFTImageWidth, c_DFTImageHeight, filename);
         }
     }
@@ -179,17 +187,39 @@ void RandomFibonacci(std::vector<int32>& values, size_t numValues, size_t rngInd
         else
             values[index] = values[index - 2] - values[index - 1];
     }
+}
 
+bool IsPrime(int32 value)
+{
+    if (value < 2)
+        return false;
+
+    if (value <= 3)
+        return true;
+
+    int32 maxCheck = ((int32)sqrt((double)value));
+    for (int32 i = 2; i <= maxCheck; ++i)
+    {
+        if ((value % i) == 0)
+            return false;
+    }
+    return true;
 }
 
 void Primes(std::vector<int32>& values, size_t numValues)
 {
-
+    int32 value = 1;
+    while (values.size() < numValues)
+    {
+        if (IsPrime(value))
+            values.push_back(value);
+        value++;
+    }
 }
 
 void UniformWhiteNoise(std::vector<int32>& values, size_t numValues, size_t rngIndex)
 {
-    std::mt19937 rng = GetRNG(0);
+    std::mt19937 rng = GetRNG((uint32)rngIndex);
     std::uniform_int_distribution<int32> dist;
 
     values.resize(numValues);
@@ -200,26 +230,33 @@ void UniformWhiteNoise(std::vector<int32>& values, size_t numValues, size_t rngI
 int main(int argc, char** argv)
 {
     // test RandomFibonacci
-    DoTest("RandomFibonacci",
+    DoTest("RandomFibonacci", c_numTests, 100,
         [] (std::vector<int32>& values, size_t numValues, size_t testIndex)
         {
             RandomFibonacci(values, numValues, testIndex);
         }
     );
 
-    int ijkl = 0;
-
     // test UniformWhite
-    DoTest("UniformWhite",
+    DoTest("UniformWhite", c_numTests, 100,
         [](std::vector<int32>& values, size_t numValues, size_t testIndex)
         {
             UniformWhiteNoise(values, numValues, testIndex);
         }
     );
 
+    // test Primes
+    DoTest("Primes", 1, 200,
+        [](std::vector<int32>& values, size_t numValues, size_t testIndex)
+        {
+            Primes(values, numValues);
+        }
+    );
+
     return 0;
 }
 
-// TODO: primes. Any other sequence? maybe white noise and blue noise just to show some stuff? maybe also regular fibonacci (vs golden ratio or??)?
-// TODO: show an individual DFT as well as an average (average the un-normalized DFTs!) of several
 // TODO: clean up. like the stddev stuff if you don't need it
+// TODO: variance too?
+// Doing more than 100 values makes random fib do a weird thing. maybe switch to doubles?
+// TODO: show points on a numberline

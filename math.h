@@ -24,6 +24,11 @@ inline float Lerp(float A, float B, float t)
     return A * (1.0f - t) + B * t;
 }
 
+inline double Lerp(double A, double B, double t)
+{
+    return A * (1.0 - t) + B * t;
+}
+
 inline float SmoothStep(float value, float min, float max)
 {
     float x = (value - min) / (max - min);
@@ -40,5 +45,5 @@ inline float LinearTosRGB(float x)
 
 inline float Fract(float x)
 {
-    return x - (float)floor(x);
+    return x - floor(x);
 }
