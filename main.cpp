@@ -26,7 +26,7 @@ static const size_t c_DFTImageHeight = 128;
 
 // --------------------- Coin Toss Tests
 
-static const size_t c_numCoinTossTests = 1000;  // Do the test this many times
+static const size_t c_numCoinTossTests = 10000;  // Do the test this many times
 static const size_t c_numHeadsRequired = 10;    // flip a coin with this many heads, then see how often the next number is heads vs tails
 
 // ---------------------
@@ -341,7 +341,8 @@ bool FlipHeads(std::mt19937& rng, size_t count)
 
 void DoCoinTossTest()
 {
-    std::mt19937 rng = GetRNG(0);
+    std::random_device rd;
+    std::mt19937 rng(rd());
 
     int headsCount = 0;
 
@@ -357,6 +358,12 @@ void DoCoinTossTest()
 
 int main(int argc, char** argv)
 {
+    DoCoinTossTest();
+    DoCoinTossTest();
+    DoCoinTossTest();
+    DoCoinTossTest();
+    DoCoinTossTest();
+
     // test RandomFibonacci
     DoTest("RandomFibonacci", c_numTests, 90,
         [] (std::vector<int64>& values, size_t numValues, size_t testIndex)
@@ -406,8 +413,6 @@ int main(int argc, char** argv)
             Fibonacci(values, numValues);
         }
     );
-
-    DoCoinTossTest();
 
     return 0;
 }
